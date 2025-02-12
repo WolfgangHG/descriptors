@@ -18,6 +18,8 @@ package org.jboss.shrinkwrap.descriptor.spi.node.dom;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  * {@link NodeImporter} implementation backed by the {@link Document} API.
@@ -85,6 +88,37 @@ public final class XmlDomNodeImporterImpl implements NodeImporter {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see org.jboss.shrinkwrap.descriptor.spi.node.NodeImporter#importAsNode(Reader)
+     */
+    @Override
+    public Node importAsNode(Reader reader) throws IllegalArgumentException {
+        try {
+            // Empty contents? If so, no root Node
+            if (reader == null || reader.ready() == false) {
+                return null;
+            }
+
+            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            final DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource source = new InputSource(reader);
+            final Document doc = builder.parse(source);
+
+            final Element element = doc.getDocumentElement();
+
+            final Node root = new Node(element.getNodeName());
+
+            readRecursive(root, element);
+            return root;
+
+        } catch (final Exception e) {
+            throw new DescriptorImportException("Could not import XML from string", e);
         }
     }
 

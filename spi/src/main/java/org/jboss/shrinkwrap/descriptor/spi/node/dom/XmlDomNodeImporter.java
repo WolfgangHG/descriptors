@@ -17,6 +17,7 @@
 package org.jboss.shrinkwrap.descriptor.spi.node.dom;
 
 import java.io.InputStream;
+import java.io.Reader;
 
 import org.jboss.shrinkwrap.descriptor.api.DescriptorImporter;
 import org.jboss.shrinkwrap.descriptor.spi.node.Node;
@@ -43,6 +44,15 @@ public enum XmlDomNodeImporter implements NodeImporter {
      */
     public Node importAsNode(InputStream stream, boolean close) throws IllegalArgumentException {
         return delegate.importAsNode(stream, close);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see org.jboss.shrinkwrap.descriptor.spi.node.NodeImporter#importAsNode(Reader)
+     */
+    public Node importAsNode(Reader input) throws IllegalArgumentException {
+        return delegate.importAsNode(input);
     }
 
 }

@@ -17,6 +17,7 @@
 package org.jboss.shrinkwrap.descriptor.spi.node;
 
 import java.io.InputStream;
+import java.io.Reader;
 
 /**
  * Imports a {@link InputStream} into a hierarchal {@link Node} structure
@@ -38,4 +39,14 @@ public interface NodeImporter {
      */
     Node importAsNode(InputStream stream, boolean close) throws IllegalArgumentException;
 
+    /**
+     * Imports the specified {@link Reader} into a {@link Node} structure, returning the root {@link Node}.
+     *
+     * @param input
+     *            The reader containing the xml file content
+     * @return
+     * @throws IllegalArgumentException
+     *             If the reader is not specified
+     */
+    Node importAsNode(Reader input) throws IllegalArgumentException;
 }

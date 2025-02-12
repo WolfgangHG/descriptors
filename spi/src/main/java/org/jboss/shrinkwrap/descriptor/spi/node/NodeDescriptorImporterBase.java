@@ -16,7 +16,10 @@
  */
 package org.jboss.shrinkwrap.descriptor.spi.node;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Constructor;
 
 import org.jboss.shrinkwrap.descriptor.api.Descriptor;
@@ -88,6 +91,52 @@ public abstract class NodeDescriptorImporterBase<T extends Descriptor> extends D
 
         // Return
         return descriptor;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see org.jboss.shrinkwrap.descriptor.api.DescriptorImporter#fromString(String)
+     */
+    @Override
+    public T fromString(final String in) throws IllegalArgumentException,
+        DescriptorImportException {
+        // Precondition check
+        if (in == null  || in.length() == 0) {
+            throw new IllegalArgumentException("Input string must be specified");
+        }
+
+        Reader reader = new StringReader(in);
+        try {
+            final Node rootNode = this.getNodeImporter().importAsNode(reader);
+
+            // Create the end-user view
+            final Constructor<T> constructor;
+            try {
+                constructor = endUserViewImplType.getConstructor(String.class, Node.class);
+            } catch (final NoSuchMethodException e) {
+                throw new DescriptorImportException("Descriptor impl " + endUserViewImplType.getName()
+                    + " does not have a constructor accepting " + String.class.getName() + " and " + Node.class.getName(),
+                    e);
+            }
+            final T descriptor;
+            try {
+                descriptor = constructor.newInstance(descriptorName, rootNode);
+            } catch (final Exception e) {
+                throw new DescriptorImportException("Could not create new instance using " + constructor + " with arg: "
+                    + rootNode);
+            }
+
+            // Return
+            return descriptor;
+        }
+        finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                throw new DescriptorImportException("Exception while closing StringReader", e);
+            }
+        }
     }
 
     // -------------------------------------------------------------------------------------||
